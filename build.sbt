@@ -12,7 +12,7 @@ lazy val filewatch = (project in file("."))
         "org.scalatest" % "scalatest_2.11" % "3.0.0" % "test"
     ),
 
-    publish := {},
+//    publish := {},
     releaseTagComment := s"[ci skip]Releasing ${(version in ThisBuild).value}",
     releaseCommitMessage := s"[ci skip]Setting version to ${(version in ThisBuild).value}",
     resourceGenerators in Compile <+= buildProperties,
