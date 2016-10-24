@@ -10,6 +10,6 @@ Usage:
 
 ```
 resolvers += "Scf37" at "https://dl.bintray.com/scf37/maven/"
-libraryDependencies += "me.scf37.filewatch" %% "filewatch" % "1.0.2"
+libraryDependencies += "me.scf37.filewatch" %% "filewatch" % "1.0.3"
 ```
 

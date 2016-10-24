@@ -3,13 +3,14 @@ lazy val filewatch = (project in file("."))
 
     name := "filewatch",
     organization := "me.scf37.filewatch",
+    crossScalaVersions := Seq("2.10.6", "2.11.8"),
 
     scalaVersion := "2.11.8",
 
     resolvers += "Scf37" at "https://dl.bintray.com/scf37/maven/",
 
     libraryDependencies ++= Seq(
-        "org.scalatest" % "scalatest_2.11" % "3.0.0" % "test"
+        "org.scalatest" %% "scalatest" % "3.0.0" % "test"
     ),
 
 //    publish := {},
