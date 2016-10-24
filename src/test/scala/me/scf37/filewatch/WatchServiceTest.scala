@@ -185,6 +185,41 @@ class WatchServiceTest extends FunSuite {
     }
   }
 
+  test("filter accepts paths that include watch path (for absolute paths)") {
+    val d = new DirectoryHelper
+    withWatcher { w =>
+      @volatile var filterPath: Path = null
+
+      w.watch(d, p => {
+        filterPath = p
+        true
+      })
+      d.file("file")
+      w.assert(ChangeEvent(d / "file"), ChangeEvent(d / "file"))
+      assert(filterPath == d / "file")
+    }
+  }
+
+  test("filter accepts paths that include watch path (for relative paths") {
+    val d = new DirectoryHelper(Paths.get("./test-dir"))
+    try {
+      withWatcher { w =>
+        @volatile var filterPath: Path = null
+        d.dir("")
+        w.watch(d, p => {
+          filterPath = p
+          true
+        })
+
+        d.file("file")
+        w.assert(ChangeEvent(d / "file"), ChangeEvent(d / "file"))
+        assert(filterPath == d / "file")
+      }
+    } finally {
+      d.rm("")
+    }
+  }
+
   test("FileWatcher.close() completes") {
     val w = FileWatcher(e => Unit)
     w.watch(Paths.get("."))
@@ -192,7 +227,7 @@ class WatchServiceTest extends FunSuite {
   }
 
 
-  def withWatcher(body: TestWatcher => Unit) = {
+  private[this] def withWatcher(body: TestWatcher => Unit) = {
     val tw = new TestWatcher
     try {
       body(tw)
@@ -201,8 +236,8 @@ class WatchServiceTest extends FunSuite {
     }
   }
 
-  class DirectoryHelper {
-    val root = Files.createTempDirectory("file-watcher-test")
+  private[this] class DirectoryHelper(val root: Path = Files.createTempDirectory("file-watcher-test")) {
+
 
     def /(p: Path) = root.resolve(p)
     def /(p: String) = root.resolve(p)
@@ -254,9 +289,9 @@ class WatchServiceTest extends FunSuite {
     }
   }
 
-  implicit def toPath(helper: DirectoryHelper): Path = helper.root
+  private[this] implicit def toPath(helper: DirectoryHelper): Path = helper.root
 
-  class TestWatcher {
+  private[this] class TestWatcher {
     private[this] var events = Seq.empty[FileWatcherEvent]
     private[this] val lock = new Object
 

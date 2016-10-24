@@ -71,7 +71,7 @@ private[filewatch] class WatchServiceRegistrar(
   }
 
   private[this] def shouldNotify(path: Path): Boolean = synchronized {
-    filters.exists(f => f._2(f._1.relativize(path)))
+    filters.exists(f => f._2(f._1.resolve(f._1.relativize(path))))
   }
 
 
