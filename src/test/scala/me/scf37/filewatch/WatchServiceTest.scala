@@ -16,9 +16,6 @@ import org.scalatest.FunSuite
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-/**
-  * Created by asm on 21.10.16.
-  */
 class WatchServiceTest extends FunSuite {
   test("No events when watching non-existing directory") {
     val d = new DirectoryHelper
@@ -224,6 +221,77 @@ class WatchServiceTest extends FunSuite {
     val w = FileWatcher(e => Unit)
     w.watch(Paths.get("."))
     Await.ready(w.close(), Duration(1, TimeUnit.SECONDS))
+  }
+
+  test("when watching unrelated directories, filters are applied only to their paths") {
+    val d = new DirectoryHelper
+    d.dir("dir1")
+    d.dir("dir2")
+    withWatcher { w =>
+      w.watch(d / "dir1", p => {
+        p.toString.endsWith("1")
+      })
+
+      w.watch(d / "dir2", p => {
+        p.toString.endsWith("2")
+      })
+
+      d.file("dir1/file1")
+      d.file("dir1/file2")
+      d.file("dir2/file1")
+      d.file("dir2/file2")
+
+      w.assertSet(ChangeEvent(d / "dir1/file1"), ChangeEvent(d / "dir2/file2"))
+    }
+  }
+
+  test("when watching related directories, filters are applied only to their paths") {
+    val d = new DirectoryHelper
+    d.dir("dir2")
+    withWatcher { w =>
+      w.watch(d , p => {
+        p.toString.endsWith("1")
+      })
+
+      w.watch(d / "dir2", p => {
+        p.toString.endsWith("2")
+      })
+
+      d.file("file1")
+      d.file("file2")
+      d.file("dir2/file1")
+      d.file("dir2/file2")
+
+      w.assertSet(ChangeEvent(d / "file1"), ChangeEvent(d / "dir2/file2"))
+    }
+  }
+
+  test("when watching related directories, filters are applied only to their paths (links)") {
+    val d = new DirectoryHelper
+    d.dir("dir1")
+    d.dir("dir2")
+    d.ln("dir2/root", "dir1")
+    // /dir1/file1 AKA /dir2/root/file1
+    // /dir1/file2 AKA /dir2/root/file2
+    // /dir2/file1
+    // /dir2/file2
+
+    withWatcher { w =>
+      w.watch(d / "dir1" , p => {
+        p.toString.endsWith("1")
+      })
+
+      w.watch(d / "dir2", p => {
+        p.toString.endsWith("2")
+      })
+
+      d.file("dir1/file1")
+      d.file("dir1/file2")
+      d.file("dir2/file1")
+      d.file("dir2/file2")
+
+      w.assertSet(ChangeEvent(d / "dir1/file1"), ChangeEvent(d / "dir2/file2"), ChangeEvent(d / "dir2/root/file2"))
+    }
   }
 
 

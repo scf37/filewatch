@@ -11,7 +11,7 @@ import scala.concurrent.Future
   *
   * FileWatcher - watches over directory tree, notifying on changes via callback provided on watcher creation.
   *
-  * To operate, FileWatcher utilizes own thread plus WatchService instance, so it must be closed when not needed anymore.
+  * To operate, FileWatcher utilizes own thread plus WatchService instances, so it must be closed when not needed anymore.
   *
   * Note on events: This class tries to guarantee that:
   * - client will get at least one (duplicates are likely!) [[ChangeEvent]] for every file created or updated
@@ -25,11 +25,7 @@ trait FileWatcher {
     * Add new directory tree to watch for. Directory trees can intersect with each other. If path does not exist
     * or not a directory, this method does nothing.
     *
-    * path, passed to filter, is guaranteed to be relative to 'path' parameter.
-    *
-    * Note - when watching multiple trees, ALL filters will be called for every changed path so
-    *   filter implementation should account to that. It is important because single directory watched only once
-    *   and in presence of links single directory can have multiple names.
+    * Every watch() is independent and path, passed in to filter, is guaranteed to start with 'path' parameter
     *
     * @param path root directory of directory tree to watch for
     * @param filter function to decide whether to notify user of event on this path

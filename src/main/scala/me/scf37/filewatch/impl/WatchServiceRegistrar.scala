@@ -2,13 +2,16 @@ package me.scf37.filewatch.impl
 
 import java.io.IOException
 import java.nio.file.FileSystemException
+import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds
 import java.nio.file.WatchEvent
+import java.nio.file.WatchKey
 import java.nio.file.WatchService
+import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 
 import me.scf37.filewatch.ChangeEvent
@@ -21,27 +24,27 @@ import scala.util.Try
 /**
   * This class manages WatchService registration, registering new directories as needed when file system changes
   *
-  * @param watchService
   * @param listener
+  * @param rootPath
+  * @param filter
   * @param followLinks
   */
 private[filewatch] class WatchServiceRegistrar(
-  watchService: WatchService,
   listener: FileWatcherEvent => Unit,
+  rootPath: Path,
+  filter: Path => Boolean,
   followLinks: Boolean) {
 
   private[this] var watchedPaths = Set.empty[Path]
-  private[this] var filters = Seq.empty[(Path, Path => Boolean)]
 
   private[this] val linkOptions = followLinks match {
     case false => Seq(LinkOption.NOFOLLOW_LINKS)
     case true => Seq.empty
   }
 
-  def watch(path: Path, filter: Path => Boolean): Unit = synchronized {
-    filters :+= path -> filter
-    watchDirs(path, notify_ = false, forceRegistration = false)
-  }
+  private[this] val watchService: WatchService = FileSystems.getDefault.newWatchService()
+
+  watchDirs(rootPath, notify_ = false, forceRegistration = false)
 
   /**
     * Update directory tree registration if necessary
@@ -70,10 +73,41 @@ private[filewatch] class WatchServiceRegistrar(
     case DesyncEvent => true
   }
 
-  private[this] def shouldNotify(path: Path): Boolean = synchronized {
-    filters.exists(f => f._2(f._1.resolve(f._1.relativize(path))))
+  def poll(): Seq[FileWatcherEvent] =
+    watchService.poll() match {
+      case null => Seq.empty
+      case watchKey => extractEvents(watchKey)
+    }
+
+  private[this] def extractEvents(watchKey: WatchKey): Seq[FileWatcherEvent] = {
+    import scala.collection.JavaConverters._
+
+    val basePath = watchKey.watchable().asInstanceOf[Path]
+    val events = watchKey.pollEvents().asScala
+
+    watchKey.reset()
+
+    events.map(e => e.kind() match {
+      case StandardWatchEventKinds.OVERFLOW => DesyncEvent
+
+      case StandardWatchEventKinds.ENTRY_CREATE =>
+        ChangeEvent(basePath.resolve(e.context().asInstanceOf[Path]))
+
+      case StandardWatchEventKinds.ENTRY_DELETE =>
+        DeleteEvent(basePath.resolve(e.context().asInstanceOf[Path]))
+
+      case StandardWatchEventKinds.ENTRY_MODIFY =>
+        ChangeEvent(basePath.resolve(e.context().asInstanceOf[Path]))
+    })
   }
 
+  def close(): Unit = {
+    Try (watchService.close())
+  }
+
+  private[this] def shouldNotify(path: Path): Boolean = synchronized {
+    filter(rootPath.resolve(rootPath.relativize(path)))
+  }
 
   private[this] def watchDirs(
     dir: Path,

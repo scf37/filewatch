@@ -4,9 +4,13 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
+import me.scf37.filewatch.ChangeEvent
+import me.scf37.filewatch.DeleteEvent
+import me.scf37.filewatch.DesyncEvent
 import me.scf37.filewatch.FileWatcherEvent
 
 import scala.collection.mutable
+import scala.util.Try
 
 /**
   * Event deduplicator, use as listener when creating [[me.scf37.filewatch.FileWatcher]]
@@ -19,28 +23,46 @@ class EventDedup(
 ) extends (FileWatcherEvent => Unit) {
 
   val events = mutable.LinkedHashSet.empty[FileWatcherEvent]
+  var isFlushScheduled = false
 
-  timer.scheduleWithFixedDelay(new Runnable {
-    override def run(): Unit = {
-      val copy = synchronized {
-        val copy = events.toSeq //at least current implementation makes copy
-        events.clear()
-        copy
-      }
+  private[this] def scheduleFlush() = {
+    isFlushScheduled = true
 
-      try {
-        if (copy.nonEmpty) {
-          listener(copy)
+    timer.scheduleWithFixedDelay(new Runnable {
+      override def run(): Unit = {
+        val copy = synchronized {
+          val copy = events.toSeq //at least current implementation makes copy
+          events.clear()
+          copy
         }
-      } catch {
-        case e: Throwable => onError(e)
-      }
 
-    }
-  }, dedupFlushDelayMs, dedupFlushDelayMs, TimeUnit.MILLISECONDS)
+        try {
+          if (copy.nonEmpty) {
+            listener(copy)
+          }
+        } catch {
+          case e: Throwable => onError(e)
+        }
+
+        synchronized {
+          isFlushScheduled = false
+        }
+
+      }
+    }, dedupFlushDelayMs, dedupFlushDelayMs, TimeUnit.MILLISECONDS)
+  }
 
   override def apply(event: FileWatcherEvent): Unit = synchronized {
-    events += event
+    events += normalize(event)
+    if (!isFlushScheduled) {
+      scheduleFlush()
+    }
+  }
+
+  private[this] def normalize(event: FileWatcherEvent): FileWatcherEvent = event match {
+    case ChangeEvent(p) => ChangeEvent(Try(p.toRealPath()).getOrElse(p))
+    case DeleteEvent(p) => DeleteEvent(Try(p.toRealPath()).getOrElse(p))
+    case DesyncEvent => DesyncEvent
   }
 }
 

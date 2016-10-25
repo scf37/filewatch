@@ -8,7 +8,7 @@ sealed trait FileWatcherEvent
   * File have been created or changed. We cannot reliably distinguish those because:
   * - create-and-write usually produces both Create and Modify jdk events
   * - when we create new directory and files within short time period, files in
-  *    new directory could be writted before we listen for changes, so all we get is Create event even if files
+  *    new directory could be written before we listen for changes, so all we get is Create event even if files
   *    were changed after creation.
   * @param path path to changed file
   */
