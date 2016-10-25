@@ -28,7 +28,7 @@ class EventDedup(
   private[this] def scheduleFlush() = {
     isFlushScheduled = true
 
-    timer.scheduleWithFixedDelay(new Runnable {
+    timer.schedule(new Runnable {
       override def run(): Unit = {
         synchronized {
           isFlushScheduled = false
@@ -48,7 +48,7 @@ class EventDedup(
           case e: Throwable => onError(e)
         }
       }
-    }, dedupFlushDelayMs, dedupFlushDelayMs, TimeUnit.MILLISECONDS)
+    }, dedupFlushDelayMs, TimeUnit.MILLISECONDS)
   }
 
   override def apply(event: FileWatcherEvent): Unit = synchronized {
