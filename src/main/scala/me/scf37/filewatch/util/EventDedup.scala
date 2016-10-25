@@ -30,6 +30,10 @@ class EventDedup(
 
     timer.scheduleWithFixedDelay(new Runnable {
       override def run(): Unit = {
+        synchronized {
+          isFlushScheduled = false
+        }
+
         val copy = synchronized {
           val copy = events.toSeq //at least current implementation makes copy
           events.clear()
@@ -43,11 +47,6 @@ class EventDedup(
         } catch {
           case e: Throwable => onError(e)
         }
-
-        synchronized {
-          isFlushScheduled = false
-        }
-
       }
     }, dedupFlushDelayMs, dedupFlushDelayMs, TimeUnit.MILLISECONDS)
   }
