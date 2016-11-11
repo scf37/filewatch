@@ -19,7 +19,8 @@ class EventDedup(
   listener: Seq[FileWatcherEvent] => Unit,
   onError: Throwable => Unit = e => e.printStackTrace(),
   timer: ScheduledExecutorService = EventDedup.defaultExecutor,
-  dedupFlushDelayMs: Int = 100
+  dedupFlushDelayMs: Int = 100,
+  normalizeEvents: Boolean = true
 ) extends (FileWatcherEvent => Unit) {
 
   val events = mutable.LinkedHashSet.empty[FileWatcherEvent]
@@ -52,7 +53,7 @@ class EventDedup(
   }
 
   override def apply(event: FileWatcherEvent): Unit = synchronized {
-    events += normalize(event)
+    events += (if (normalizeEvents) normalize(event) else event)
     if (!isFlushScheduled) {
       scheduleFlush()
     }
