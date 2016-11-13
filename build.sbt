@@ -3,7 +3,7 @@ lazy val filewatch = (project in file("."))
 
     name := "filewatch",
     organization := "me.scf37.filewatch",
-    crossScalaVersions := Seq("2.10.6", "2.11.8"),
+    crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0"),
     releaseCrossBuild := true,
 
     scalaVersion := "2.11.8",
