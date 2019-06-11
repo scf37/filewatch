@@ -57,7 +57,7 @@ private[filewatch] class FileWatcherService(
 
   override def close(): Future[Unit] = synchronized {
     state match {
-      case Stopping(_) | Stopped => Future successful Unit
+      case Stopping(_) | Stopped => Future successful ()
       case Started =>
         val p = Promise[Unit]
         state = Stopping(p)
@@ -97,7 +97,7 @@ private[filewatch] class FileWatcherService(
     } finally {
       state match {
         case Started => state = Stopped
-        case Stopping(p) => p.success(Unit)
+        case Stopping(p) => p.success(())
         case Stopped =>
       }
       synchronized {

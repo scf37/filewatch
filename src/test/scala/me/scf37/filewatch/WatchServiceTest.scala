@@ -218,7 +218,7 @@ class WatchServiceTest extends FunSuite {
   }
 
   test("FileWatcher.close() completes") {
-    val w = FileWatcher(e => Unit)
+    val w = FileWatcher(e => ())
     w.watch(Paths.get("."))
     Await.ready(w.close(), Duration(1, TimeUnit.SECONDS))
   }

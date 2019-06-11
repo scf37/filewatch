@@ -98,7 +98,7 @@ private[filewatch] class WatchServiceRegistrar(
 
       case StandardWatchEventKinds.ENTRY_MODIFY =>
         ChangeEvent(basePath.resolve(e.context().asInstanceOf[Path]))
-    })
+    }).toSeq
   }
 
   def close(): Unit = {
