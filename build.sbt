@@ -3,10 +3,24 @@ lazy val filewatch = (project in file("."))
 
     name := "filewatch",
     organization := "me.scf37.filewatch",
-    crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0", "2.13.0"),
+    crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.8", "2.13.0"),
     releaseCrossBuild := true,
 
     scalaVersion := "2.11.8",
+
+    scalacOptions := Seq(
+        "-deprecation",
+        "-encoding",
+        "UTF-8",
+        "-feature",
+        "-deprecation",
+        "-language:implicitConversions",
+        "-language:higherKinds",
+        "-unchecked",
+        "-Ywarn-dead-code",
+        "-Ywarn-numeric-widen",
+        "-Xlint"
+    ),
 
     resolvers += "Scf37" at "https://dl.bintray.com/scf37/maven/",
 

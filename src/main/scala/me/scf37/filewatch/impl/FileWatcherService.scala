@@ -26,7 +26,7 @@ private[filewatch] class FileWatcherService(
   followLinks: Boolean
 ) extends FileWatcher {
 
-  private final val POOL_DELAY_MS: Int = 10
+  private final val POOL_DELAY_MS: Long = 10
 
   private[this] sealed trait State
   private[this] case object Started extends State
@@ -57,7 +57,7 @@ private[filewatch] class FileWatcherService(
 
   override def close(): Future[Unit] = synchronized {
     state match {
-      case Stopping(_) | Stopped => Future successful ()
+      case Stopping(_) | Stopped => Future.successful(())
       case Started =>
         val p = Promise[Unit]
         state = Stopping(p)

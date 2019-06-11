@@ -19,7 +19,7 @@ class EventDedup(
   listener: Seq[FileWatcherEvent] => Unit,
   onError: Throwable => Unit = e => e.printStackTrace(),
   timer: ScheduledExecutorService = EventDedup.defaultExecutor,
-  dedupFlushDelayMs: Int = 100,
+  dedupFlushDelayMs: Long = 100,
   normalizeEvents: Boolean = true
 ) extends (FileWatcherEvent => Unit) {
 
