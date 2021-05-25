@@ -11,12 +11,12 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.TimeUnit
 
 import org.scalatest.Assertions
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-class WatchServiceTest extends FunSuite {
+class WatchServiceTest extends AnyFunSuite {
   test("No events when watching non-existing directory") {
     val d = new DirectoryHelper
     withWatcher { w =>
@@ -391,7 +391,7 @@ class WatchServiceTest extends FunSuite {
       }
 
       if (!await(contains(events, expectedEvents))) {
-        Assertions.assert(contains(events, expectedEvents), events + " did not contain " + expectedEvents)
+        Assertions.assert(contains(events, expectedEvents), events.toString + " did not contain " + expectedEvents.toString)
       }
     }
 

@@ -1,7 +1,7 @@
-addSbtPlugin("me.lessis" % "bintray-sbt" % "0.3.0")
-addSbtPlugin("org.scoverage" % "sbt-coveralls" % "1.1.0")
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.0")
-addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.3")
+addSbtPlugin("org.scoverage" % "sbt-coveralls" % "1.2.7")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")
 
-resolvers += Resolver.url("plugins", url("https://dl.bintray.com/scf37/sbt-plugins"))(Resolver.ivyStylePatterns)
-addSbtPlugin("me.scf37.buildprops" % "sbt-build-properties" % "1.0.2")
+addSbtPlugin("me.scf37" % "sbt-build-properties" % "1.0.8")
+resolvers += Resolver.sonatypeRepo("public")
+
+addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.5.7")

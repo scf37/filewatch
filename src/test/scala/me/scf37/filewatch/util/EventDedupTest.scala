@@ -6,9 +6,9 @@ import me.scf37.filewatch.ChangeEvent
 import me.scf37.filewatch.DeleteEvent
 import me.scf37.filewatch.DesyncEvent
 import me.scf37.filewatch.FileWatcherEvent
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class EventDedupTest extends FunSuite {
+class EventDedupTest extends AnyFunSuite {
   test("test dedup") {
     @volatile var events = Seq.empty[FileWatcherEvent]
 
